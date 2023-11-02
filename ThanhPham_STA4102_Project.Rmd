@@ -1,0 +1,115 @@
+I. Loading Data
+```{r chunk_1, error=TRUE}
+#import data
+heart <- read.csv("~/Documents/STA4102_Project/heart.csv")
+print(head(heart))
+```
+II. Data Cleaning
+```{r chunk_2, error=TRUE}
+# check if there is any missing NA values in the data
+NA_values <- sum(is.na(heart))
+print(NA_values)
+```
+
+
+III. Data Analysis
+```{r chunk_3, error=TRUE}
+# import library
+library(ggplot2)
+
+# Statisitcial summary of data
+summary(heart)
+
+# Explore the age
+age <- heart$age
+hist(age)
+```
+
+
+
+```{r chunk_4, error=TRUE}
+# Explore the sex
+sex <- heart$sex
+male <- sum(sex == 1)
+female <- sum(sex == 0)
+
+barplot(c(male, female), names.arg = c("Male", "Female"), xlab = "Sex", ylab = "Count", col = c("red", "blue"), main = "Distribution of Sex")
+```
+
+```{r chunk_5, error=TRUE}
+# Create a density plot to explore the biased relation between sex and age
+ggplot(heart, aes(x = age, fill = sex)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Age", y = "Density") +
+  ggtitle("Density Estimate by Sex v.s Age")
+```
+
+
+```{r chunk_6, error=TRUE}
+# The relation between thalach (maximum heart rate achieved) and age 
+thalach <- heart_cleaned$thalach
+ggplot(heart, aes(x = age, y = thalach)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Age", y = "thalach", title = "Linear Regression Line between age and maximum heart rate")
+```
+
+```{r chunk_7, error=TRUE}
+# The relation between cp (chest pain type: 0,1,2,3) and age
+cp <- heart$cp
+ggplot(heart, aes(x = age, y = cp)) +
+  geom_density_2d() +
+  labs(x = "Age", y = "cp", title = "2D Kernel Density Plot")
+```
+
+IV. Modeling
+
+Linear Regression
+
+```{r chunk_8, error=TRUE}
+model1 <- lm(age ~ thalach, data=heart)
+summary(model1)
+```
+
+Logistic Regression
+```{r chunk_9, error=TRUE}
+set.seed(100) 
+
+index <- sample(nrow(heart),0.75*nrow(heart))
+train <- heart[index,]
+test <- heart[-index,]
+
+model <- glm(target~.,data = train,family = "binomial")
+model
+```
+
+V. Modeling and Prediction
+
+Decision Tree
+```{r chunk_10, error=TRUE}
+train$pred<-NULL
+test$pred<-NULL
+
+library(rpart)
+tree<-rpart(target~.,method = "class",data = train)
+library(rpart.plot)
+rpart.plot(tree)
+
+acc_tr_tree<-(21+37)/76
+acc_tr_tree
+```
+
+Random Forest
+```{r chunk_11, error=TRUE}
+install.packages("randomForest")
+library(randomForest)
+
+test$pred<-NULL
+set.seed(100)
+
+target <- heart$target
+model_random_for <- randomForest(target ~ ., data = heart)
+model_random_for
+plot(model_random_for)
+```
+
